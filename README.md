@@ -12,13 +12,13 @@ I've decided to check character by caracter every element of imported html text 
 ### How it works
 
 The parser processes input string character-by-character, transitioning through defined states:
-**`TEXT`**: Collects inner text until `<` or `nextChar == undefined` is encountered.
-**`COMMENT_OR_DOCTYPE`**: Collects inner text until `>` with `-` is encountered.
-**`TAG_OPEN`**: Determines if the upcoming sequence is a closing tag (`/`), comment/doctype (`!`), or a standard opening tag name.
-**`TAG_NAME`**: Accumulates the tag identifier, constructs the node, pushes it to `children`, and conditionally pushes non-void tags to `stack`.
-**`CLOSE_TAG_NAME`**: Matches closing tags and pops the current active parent from `stack`.
-**`ATTRIBUTE_NAME`**: Captures attribute keys until encountering `=` (for value assignment) or space | `>` (for boolean attributes).
-**`ATTRIBUTE_VALUE`**: Accumulates attribute values, stripping surrounding quotes automatically.
+* **`TEXT`**: Collects inner text until `<` or `nextChar == undefined` is encountered.
+* **`COMMENT_OR_DOCTYPE`**: Collects inner text until `>` with `-` is encountered.
+* **`TAG_OPEN`**: Determines if the upcoming sequence is a closing tag (`/`), comment/doctype (`!`), or a standard opening tag name.
+* **`TAG_NAME`**: Accumulates the tag identifier, constructs the node, pushes it to `children`, and conditionally pushes non-void tags to `stack`.
+* **`CLOSE_TAG_NAME`**: Matches closing tags and pops the current active parent from `stack`.
+* **`ATTRIBUTE_NAME`**: Captures attribute keys until encountering `=` (for value assignment) or space | `>` (for boolean attributes).
+* **`ATTRIBUTE_VALUE`**: Accumulates attribute values, stripping surrounding quotes automatically.
 
 **`dataPush` Function**: Collecting imported data and it type to futher pushing to the `root` | `stack` array depending on it length.
 **`void_tags` Array**: Self closed tags collection.
