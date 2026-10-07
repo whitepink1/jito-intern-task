@@ -1,34 +1,297 @@
-# Jito's Software Development Intern "html2json" Test Task
+# "html2json" Test Task solution by Kyrylo Prokopenko
 
-## Task Rationale
-This task is designed to evaluate how well you solve problems without having every detail explicitly provided and to assess the quality of your deliverables. This type of task isn't necessarily reflective of your future work but aims to help us understand your thought process and reasoning in the context of software development.
+I've decided to check character by caracter every element of imported html text file to interact with any kind of tags instead of importing and picking every existing element from an array or object.  
 
-## Assignment
-Your task is to implement a function called `html2json`, which converts HTML data into a JSON representation.
-AI tools usage is <b>REQUIRED</b>. Is is required that you provide your entire conversation history by attaching a link to the dialogue. Therefore, keep all your research within a single conversation and submit the link along with your task.
+## Initial data
+- `root = []` - the entry-point array that holds top level of our DOM
+- `stack = []` - stack used to track active parent elements
+- `currentTagNode = null` - dynamic pointer referencing the node currently having its tag name or attributes
+- `state = 'TEXT'` - active handler name, helping to participate with direct character-by-character processing
+- `curData = ''` - an accumulator that collects characters for tag/attribute(name, value) or doc/comment until a boundary character is met
 
-## Expected repository structure
-- `html2json.js` - This file should contain your implementation of the html2json function.
-- `html_samples/` folder - Include files with a text that you used as samples to test your function.
-- `index.html` - The initial file we provided. You can leave it unchanged, but please include it in the archive.
-- `ai_help/` folder - If you used any resources for code generation:
-- Create a file named `chatgpt_chat.txt` with a link to the ChatGPT chat used.
-- For any other AI resources, attach relevant `.pdf`, `.png`, or `.mp4` files showing how you used them.
-- You can optionally update `README.md` completely if you want to add explanations of your reasoning or any other comments.
+### How it works
 
-## Key Points for Evaluation
-- Coverage of various HTML structures and different sizes.
-- The code <b>MUST NOT</b> crash.
-- Code cleanliness and formatting.
-- Using a DOM parser is not allowed.
-- How effectively you handled unexpected scenarios, such as situations where your code received valid HTML but still crashed or produced incorrect results. We will evaluate your ability to anticipate edge cases and ensure robustness in your solution.
+The parser processes input string character-by-character, transitioning through defined states:
+**`TEXT`**: Collects inner text until `<` or `nextChar == undefined` is encountered.
+**`COMMENT_OR_DOCTYPE`**: Collects inner text until `>` with `-` is encountered.
+**`TAG_OPEN`**: Determines if the upcoming sequence is a closing tag (`/`), comment/doctype (`!`), or a standard opening tag name.
+**`TAG_NAME`**: Accumulates the tag identifier, constructs the node, pushes it to `children`, and conditionally pushes non-void tags to `stack`.
+**`CLOSE_TAG_NAME`**: Matches closing tags and pops the current active parent from `stack`.
+**`ATTRIBUTE_NAME`**: Captures attribute keys until encountering `=` (for value assignment) or space | `>` (for boolean attributes).
+**`ATTRIBUTE_VALUE`**: Accumulates attribute values, stripping surrounding quotes automatically.
 
-## P.S. from the team
-Please focus on quality rather than speed. Quality in this context means ensuring your solution is well thought-out, robust, and free of obvious issues. The speed of delivery will <b>NOT</b> be prioritized, so take the necessary time to research and refine your approach, as long as you complete the task within the specified timeframe.
-Before submitting your final results, double or even triple-check everything:
-- Verify that all links you provide are accessible in incognito mode, as broken links will result in your submission <b>NOT</b> being reviewed.
-- Just before submitting, test your code again to ensure it still functions correctly and handles the html samples without crashing. If your code crashes or fails on your own samples, it will be treated as a failed submission.
-- Make sure all items are included according to the [Expected Deliverables](#expected-deliverables) section. If any required files or information are missing, we will <b>NOT</b> be able to review your task, and it will be <ins>treated as failed</ins>.
-- Jito’s senior developer will thoroughly review your solution. Based on this review, if deemed appropriate, you may be invited for a technical code review. This will include questions about the code, your understanding, and the reasoning behind your solution choices.
-- The best indicator that you’ve done your best is the feeling of confidence when submitting, knowing that you have thoroughly checked your work and cannot think of anything more to improve.
-- You can view test task template [here](https://jito-dev.github.io/jito-intern-test-task/)
+**`dataPush` Function**: Collecting imported data and it type to futher pushing to the `root` | `stack` array depending on it length.
+**`void_tags` Array**: Self closed tags collection.
+
+---
+
+## Usage Example
+
+**Imported Data:**
+```bash
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport">
+    <title>Sample HTML</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <h1>Welcome to My Website</h1>
+    </header>
+    <nav>
+        <ul>
+            <li><a href="#home">Home</a></li>
+            <li><a href="#about">About</a></li>
+            <li><a href="#contact">Contact</a></li>
+        </ul>
+    </nav>
+    <main>
+        <section id="home">
+            <h2>Home Section</h2>
+            <p>This is the home section of the webpage.</p>
+        </section>
+        <section id="about">
+            <h2>About Section</h2>
+            <p>This is the about section of the webpage.</p>
+        </section>
+    </main>
+    <footer>
+        <p>&copy; 2024 My Website</p>
+    </footer>
+    <script src="script.js"></script>
+</body>
+</html>
+```
+
+**Output Structure**
+```bash
+[
+  {
+    "doctype": "!DOCTYPE html"
+  },
+  {
+    "tag": "html",
+    "attribute": [
+      {
+        "attributeName": "lang",
+        "attributeValue": "en"
+      }
+    ],
+    "children": [
+      {
+        "tag": "head",
+        "attribute": [],
+        "children": [
+          {
+            "tag": "meta",
+            "attribute": [
+              {
+                "attributeName": "charset",
+                "attributeValue": "UTF-8"
+              }
+            ]
+          },
+          {
+            "tag": "meta",
+            "attribute": [
+              {
+                "attributeName": "name",
+                "attributeValue": "viewport"
+              }
+            ]
+          },
+          {
+            "tag": "title",
+            "attribute": [],
+            "children": [
+              "Sample HTML"
+            ]
+          },
+          {
+            "tag": "link",
+            "attribute": [
+              {
+                "attributeName": "rel",
+                "attributeValue": "stylesheet"
+              },
+              {
+                "attributeName": "href",
+                "attributeValue": "styles.css"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "body",
+    "attribute": [],
+    "children": [
+      {
+        "tag": "header",
+        "attribute": [],
+        "children": [
+          {
+            "tag": "h1",
+            "attribute": [],
+            "children": [
+              "Welcome to My Website"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "nav",
+    "attribute": [],
+    "children": [
+      {
+        "tag": "ul",
+        "attribute": [],
+        "children": [
+          {
+            "tag": "li",
+            "attribute": [],
+            "children": [
+              {
+                "tag": "a",
+                "attribute": [
+                  {
+                    "attributeName": "href",
+                    "attributeValue": "#home"
+                  }
+                ],
+                "children": [
+                  "Home"
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "tag": "li",
+        "attribute": [],
+        "children": [
+          {
+            "tag": "a",
+            "attribute": [
+              {
+                "attributeName": "href",
+                "attributeValue": "#about"
+              }
+            ],
+            "children": [
+              "About"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "li",
+    "attribute": [],
+    "children": [
+      {
+        "tag": "a",
+        "attribute": [
+          {
+            "attributeName": "href",
+            "attributeValue": "#contact"
+          }
+        ],
+        "children": [
+          "Contact"
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "main",
+    "attribute": [],
+    "children": [
+      {
+        "tag": "section",
+        "attribute": [
+          {
+            "attributeName": "id",
+            "attributeValue": "home"
+          }
+        ],
+        "children": [
+          {
+            "tag": "h2",
+            "attribute": [],
+            "children": [
+              "Home Section"
+            ]
+          },
+          {
+            "tag": "p",
+            "attribute": [],
+            "children": [
+              "This is the home section of the webpage."
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "section",
+    "attribute": [
+      {
+        "attributeName": "id",
+        "attributeValue": "about"
+      }
+    ],
+    "children": [
+      {
+        "tag": "h2",
+        "attribute": [],
+        "children": [
+          "About Section"
+        ]
+      },
+      {
+        "tag": "p",
+        "attribute": [],
+        "children": [
+          "This is the about section of the webpage."
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "footer",
+    "attribute": [],
+    "children": [
+      {
+        "tag": "p",
+        "attribute": [],
+        "children": [
+          "&copy; 2024 My Website"
+        ]
+      }
+    ]
+  },
+  {
+    "tag": "script",
+    "attribute": [
+      {
+        "attributeName": "src",
+        "attributeValue": "script.js"
+      }
+    ],
+    "children": []
+  }
+]
+```
+
+
